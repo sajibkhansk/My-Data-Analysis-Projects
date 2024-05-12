@@ -26,6 +26,7 @@ SELECT * FROM museum_hours; -- 351
 SELECT * FROM  subject; -- 6771
 SELECT * FROM work; -- 14776
 SELECT * FROM product_size; -- 110347
+```
 
 
 ## SQL Queries and Outputs
@@ -37,3 +38,6 @@ Here are the SQL queries along with their outputs:
 ```sql
 SELECT * FROM work
 WHERE museum_id IS NULL;
+```
+-- Output --  
+There are 10,223 paintings which are not displayed on any museums.
