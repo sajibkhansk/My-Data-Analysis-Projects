@@ -41,3 +41,49 @@ WHERE museum_id IS NULL;
 ```
 -- Output --  
 There are 10,223 paintings which are not displayed on any museums.
+
+2. **Are there museuems without any paintings**
+
+```sql
+SELECT M.* 
+FROM MUSEUM M
+LEFT JOIN WORK W
+ON M.MUSEUM_ID = W.MUSEUM_ID
+WHERE W.MUSEUM_ID IS NULL;
+```
+-- Output --  
+There is no museuems without any painting
+
+3. **How many paintings have an asking price of more than their regular price?**
+```sql
+SELECT COUNT(WORK_ID)
+FROM PRODUCT_SIZE
+WHERE SALE_PRICE > REGULAR_PRICE;
+```
+-- Output --
+There is no paintings have an asking price of more than their regular price.
+
+
+4. **Identify the paintings whose asking price is less than 50% of its regular price**
+```sql
+SELECT work_id
+FROM PRODUCT_SIZE
+WHERE SALE_PRICE > REGULAR_PRICE / 2;
+```
+-- Output --
+There are almost 1,10,289 paintings whose asking price is less than 50% of its regular price.
+
+5. **Which canva size costs the most?**
+```sql
+SELECT C.LABEL, P.SALE_PRICE
+FROM PRODUCT_SIZE P
+LEFT JOIN CANVAS_SIZE C
+ON P.SIZE_ID = C.SIZE_ID
+ORDER BY SALE_PRICE DESC
+LIMIT 1;
+```
+-- Output --
+| Label                   | Sale Price |
+|-------------------------|------------|
+| 48" x 96" (122 cm x 244 cm) | 1115   |
+
