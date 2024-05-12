@@ -2,7 +2,7 @@
 
 RFM (Recency, Frequency, Monetary) segmentation is a method used by businesses to categorize customers based on their transactional behavior. This segmentation approach helps in understanding customer value and behavior, enabling targeted marketing and customer relationship management strategies.
 
-## RFM Segmentation
+## Why we should go through in this process
 
 RFM segmentation involves calculating recency, frequency, and monetary scores for each customer and then categorizing them into segments based on these scores. The provided SQL script segments customers into different categories, such as 'Churned Customer', 'Slipping Away, Cannot Lose', 'New Customers', 'Potential Churners', 'Active', and 'Loyal'.
 
@@ -151,6 +151,8 @@ select distinct TERRITORY from SALES_SAMPLE_DATA;
 | Japan     |
 
 ## Analysis
+
+**This SQL query calculates the RFM (Recency, Frequency, Monetary) values for each customer in the dataset**
 ```sql
 SELECT
     CUSTOMERNAME,
@@ -172,6 +174,8 @@ GROUP BY CUSTOMERNAME;
 | Australian Collectables, Ltd| 64591         | 3         | -22     |
 | ........................  | .......       | ....        | ...    |
 
+
+**This SQL code creates a view named RFM_SEGMENT, which calculates the RFM (Recency, Frequency, Monetary) scores and combines them into a single RFM category combination for each customer.**
 ```sql
 CREATE VIEW RFM_SEGMENT AS 
 WITH RFM_INITIAL_CALC AS (
@@ -228,7 +232,9 @@ ORDER BY 1;
 | 124                      |
 | 211                      |
 
+**This SQL code segment assigns a customer segment label based on their RFM category combination**
 ```sql
+
 SELECT 
     CUSTOMERNAME,
     CASE
@@ -251,7 +257,7 @@ FROM RFM_SEGMENT;
 | Auto-Moto Classics Inc. | NEW CUSTOMERS       |
 | Microscale Inc.         | CHURNED CUSTOMER    |
 | .........           | ......            |
-
+**This SQL code utilizes a common table expression (CTE) named CTE1 to assign customer segments based on their RFM category combinations. It then counts the number of customers in each segment and presents the result.**
 ```sql
 WITH CTE1 AS
 (SELECT 
@@ -289,7 +295,7 @@ ORDER BY 2 DESC;
 - Identify best-selling products in specific periods.
 - Determine the best month for sales in a particular year.
 
-## RFM Segmentation
+
 
 - Calculate recency, frequency, and monetary scores for each customer.
 - Segment customers into categories based on RFM scores.
