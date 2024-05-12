@@ -290,10 +290,6 @@ ORDER BY 2 DESC;
 | SLIPPING AWAY, CANNOT LOSE| 8                   |
 | NEW CUSTOMERS             | 4                   |
 
-- Group sales by product line.
-- Analyze sales revenue over different years and months.
-- Identify best-selling products in specific periods.
-- Determine the best month for sales in a particular year.
 
 
 
