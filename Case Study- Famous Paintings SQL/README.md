@@ -269,16 +269,349 @@ WHERE DAY IN ('Sunday', 'Monday');
 | Norton Simon Museum                           | Pasadena      |
 | Courtauld Gallery                             | Stran         |
 
-10. **Which canva size costs the most?**
+11. **How many museums are open every single day**
 ```sql
-SELECT C.LABEL, P.SALE_PRICE
-FROM PRODUCT_SIZE P
-LEFT JOIN CANVAS_SIZE C
-ON P.SIZE_ID = C.SIZE_ID
-ORDER BY SALE_PRICE DESC
+SELECT 
+    COUNT(*)
+FROM
+    (SELECT 
+        museum_id, COUNT(*) AS no_of_museum_opening
+    FROM
+        museum_hours
+    GROUP BY museum_id
+    HAVING no_of_museum_opening = 7) x;
+    
+```
+-- Output --
+| COUNT(*) |
+|----------|
+|    18    |
+
+12. **Which are the top 5 most popular museum? (Popularity is defined based on most no of paintings in a museum)**
+```sql
+SELECT m.museum_id, 
+       m.name,  
+       COUNT(work_id) AS work_shown 
+FROM work w
+JOIN museum m ON w.museum_id = m.museum_id
+
+GROUP BY 1, 2 
+ORDER BY work_shown DESC
+LIMIT 5;    
+```
+-- Output --
+| Museum ID | Name                              | Works Shown |
+|-----------|-----------------------------------|-------------|
+| 35        | The Metropolitan Museum of Art   | 939         |
+| 43        | Rijksmuseum                       | 452         |
+| 47        | National Gallery                  | 423         |
+| 46        | National Gallery of Art           | 375         |
+| 51        | The Barnes Foundation             | 350         |
+
+13. **Who are the top 5 most popular artist? (Popularity is defined based on most no of paintings done by an artist)**
+```sql
+SELECT 
+a.artist_id,
+full_name,
+count(w.work_id) as NO_OF_WORK
+FROM work w
+JOIN artist a 
+ON w.artist_id = a.artist_id
+group by a.artist_id, full_name
+order by NO_OF_WORK DESC
+LIMIT 5;
+ 
+```
+-- Output --
+| Artist ID | Full Name              | No. of Works |
+|-----------|------------------------|--------------|
+| 500       | Pierre-Auguste Renoir | 469          |
+| 550       | Claude Monet           | 378          |
+| 677       | Vincent Van Gogh       | 308          |
+| 649       | Maurice Utrillo        | 253          |
+| 559       | Albert Marquet         | 233          |
+
+14. **Display the 3 least popular canva sizes**
+```sql
+SELECT
+p.size_id, 
+c.label,
+count(w.work_id) as work_shown
+FROM work w
+JOIN product_size p
+ON w.work_id = p.work_id
+JOIN canvas_size c
+ON c.size_id = p.size_id
+group by 1,2
+order by work_shown
+limit 3;    
+```
+-- Output --
+| Size ID | Label                          | Works Shown |
+|---------|--------------------------------|-------------|
+| 3730    | 37" x 30"(94 cm x 76 cm)      | 1           |
+| 3218    | 32" x 18"(81 cm x 46 cm)      | 1           |
+| 4635    | 46" x 35"(117 cm x 89 cm)     | 1           |
+
+
+
+15. **Which museum is open for the longest during a day. Dispay museum name, state and hours open and which day?**
+```sql
+with CTE as (
+SELECT 
+    m.museum_id,
+    m.name,
+    MAX(HOUR(
+    TIMEDIFF(
+        STR_TO_DATE(close, '%h:%i:%p'), 
+        STR_TO_DATE(open, '%h:%i:%p')
+    ) ))AS hour_gap
+FROM 
+    museum_hours h join 
+    museum m
+    on m.museum_id = h.museum_id
+    group by 1,2)
+select * from CTE
+order by hour_gap desc
+limit 1
+; --  'Musée du Louvre' open for 12 hour which is maximum 
+```
+-- Output --
+| Museum ID | Name              | Hour Gap |
+|-----------|-------------------|----------|
+| 40        | Musée du Louvre  | 12       |
+
+16. **Which museum has the most no of most popular painting style?**
+```sql
+SELECT 
+       m.name, 
+       w.style,
+       COUNT(work_id) AS work_shown 
+FROM work w
+JOIN museum m ON w.museum_id = m.museum_id
+GROUP BY m.museum_id,m.name, 
+       w.style
+ORDER BY work_shown DESC
 LIMIT 1;
 ```
 -- Output --
-| Label                   | Sale Price |
-|-------------------------|------------|
-| 48" x 96" (122 cm x 244 cm) | 1115   |
+| Name                              | Style         | Works Shown |
+|-----------------------------------|---------------|-------------|
+| The Metropolitan Museum of Art   | Impressionism| 244         |
+
+17. **Identify the artists whose paintings are displayed in multiple countries**
+```sql
+create table  temp (
+ SELECT DISTINCT 
+        a.full_name AS artist,
+        m.country
+    FROM 
+        work w
+    JOIN 
+        artist a ON a.artist_id = w.artist_id
+    JOIN 
+        museum m ON m.museum_id = w.museum_id
+);
+select 
+artist,
+count(country) as country
+from temp
+group by artist
+having country > 1
+order by country desc;
+```
+-- Output --
+| Artist            | Country | 
+|-------------------|---------|
+| Vincent Van Gogh  | 8       |
+| Claude Monet      | 7       |
+| Paul Gauguin      | 7       |
+| Pierre-Auguste Renoir | 6   |
+| Francois Boucher  | 6       |
+| Rembrandt Van Rijn | 6     |
+| Camille Pissarro  | 5       |
+| Édouard Vuillard  | 5       |
+| El Greco          | 5       |
+| Peter Paul Rubens | 5       |
+| Alfred Sisley     | 5       |
+| André Derain      | 5       |
+| Francisco De Goya | 5       |
+| Frans Hals        | 5       |
+| Edgar Degas       | 5       |
+| Leonardo Da Vinci | 5       |
+| ................. | ....... |
+
+
+18. **Display the country and the city with most no of museums. Output 2 seperate columns to
+    mention the city and country. If there are multiple value, seperate them with comma.**
+```sql
+WITH cte_country AS (
+    SELECT 
+        country,
+        COUNT(*) AS country_count,
+        RANK() OVER (ORDER BY COUNT(1) DESC) AS country_rank
+    FROM 
+        museum
+    GROUP BY 
+        country
+),
+cte_city AS (
+    SELECT 
+        city,
+        COUNT(1) AS city_count,
+        RANK() OVER (ORDER BY COUNT(1) DESC) AS city_rank
+    FROM 
+        museum
+    GROUP BY 
+        city
+)
+SELECT 
+    (SELECT GROUP_CONCAT(DISTINCT country) FROM cte_country WHERE country_rank = 1) AS top_country,
+    (SELECT GROUP_CONCAT(DISTINCT city) FROM cte_city WHERE city_rank = 1) AS top_city;
+```
+-- Output --
+| top_country                              | top_city  |
+|-----------------------------------|---------------|
+| 'USA' |  'London,New York,Paris,Washington'|      
+
+19. **Identify the artist and the museum where the most expensive and least expensive painting is placed. Display the artist name, sale_price, painting name, museum name, museum city and canvas label
+
+```sql
+WITH cte AS (
+    SELECT 
+        w.work_id,
+        full_name,
+        sale_price,
+        w.name AS museum_name,
+        m.name,
+        m.city,
+        c.label,
+        MAX(sale_price) OVER () AS max_sale_price,
+        MIN(sale_price) OVER () AS min_sale_price
+    FROM 
+        product_size p 
+    JOIN 
+        work w ON w.work_id = p.work_id
+    JOIN 
+        museum m ON m.museum_id = w.museum_id
+    JOIN 
+        artist a ON a.artist_id = w.artist_id
+    JOIN 
+        canvas_size c ON c.size_id = p.size_id
+)
+SELECT 
+    *
+FROM 
+    cte
+WHERE 
+    sale_price IN (max_sale_price, min_sale_price)
+limit 2;
+
+```
+-- Output --
+| Work ID | Full Name               | Sale Price | Museum Name                    | Name                              | City       | Label                           | Max Sale Price | Min Sale Price |
+|---------|-------------------------|------------|--------------------------------|-----------------------------------|------------|---------------------------------|----------------|----------------|
+| 22890   | Peter Paul Rubens      | 1115       | Fortuna                        | The Prado Museum                 | Madrid     | 48" x 96"(122 cm x 244 cm)     | 1115           | 10             |
+| 31780   | Adélaïde Labille-Guiard | 10        | Portrait of Madame Labille-Guyard and Her Pupils | The Metropolitan Museum of Art | New York   | 30" Long Edge                   | 1115           | 10             |
+
+
+
+20. **Which country has the 5th highest no of paintings?**
+```sql
+create table  temp (
+ SELECT DISTINCT 
+        a.full_name AS artist,
+        m.country
+    FROM 
+        work w
+    JOIN 
+        artist a ON a.artist_id = w.artist_id
+    JOIN 
+        museum m ON m.museum_id = w.museum_id
+);
+select 
+artist,
+count(country) as country
+from temp
+group by artist
+having country > 1
+order by country desc;
+```
+-- Output --
+| Country | No. of Paintings |
+|---------|------------------|
+| Spain   | 196              |
+
+
+21. **Which are the 3 most popular and 3 least popular painting styles?**
+```sql
+SELECT 
+    style,
+    CASE 
+        WHEN rnk <= 3 THEN 'Most Popular'
+        ELSE 'Least Popular' 
+    END AS popularity
+FROM (
+    SELECT 
+        style,
+        RANK() OVER (ORDER BY cnt DESC) AS rnk
+    FROM (
+        SELECT 
+            style,
+            COUNT(*) AS cnt
+        FROM 
+            work
+        WHERE 
+            style IS NOT NULL
+        GROUP BY 
+            style
+    ) AS subquery
+) AS ranked_styles
+WHERE 
+    rnk <= 3
+    OR rnk > (SELECT COUNT(DISTINCT style) FROM work WHERE style IS NOT NULL) - 3;
+```
+-- Output --
+| Style              | Popularity     |
+|--------------------|----------------|
+| Impressionism     | Most Popular   |
+| Post-Impressionism| Most Popular   |
+| Realism            | Most Popular   |
+| Avant-Garde        | Least Popular  |
+| Art Nouveau        | Least Popular  |
+| Japanese Art       | Least Popular  |
+
+20. **Which artist has the most no of Portraits paintings outside USA?. Display artist name, no of paintings and the artist nationality.**
+```sql
+SELECT 
+    full_name AS artist_name,
+    nationality,
+    no_of_paintings
+FROM (
+    SELECT 
+        a.full_name,
+        a.nationality,
+        COUNT(*) AS no_of_paintings,
+        RANK() OVER (ORDER BY COUNT(*) DESC) AS rnk
+    FROM 
+        work w
+    JOIN 
+        artist a ON a.artist_id = w.artist_id
+    JOIN 
+        subject s ON s.work_id = w.work_id
+    JOIN 
+        museum m ON m.museum_id = w.museum_id
+    WHERE 
+        s.subject = 'Portraits'
+        AND m.country != 'USA'
+    GROUP BY 
+        a.full_name, a.nationality
+) x
+WHERE 
+    rnk = 1;
+```
+-- Output --
+| Artist Name          | Nationality | No. of Paintings |
+|----------------------|-------------|------------------|
+| Jan Willem Pieneman | Dutch       | 14               |
+| Vincent Van Gogh    | Dutch       | 14               |
