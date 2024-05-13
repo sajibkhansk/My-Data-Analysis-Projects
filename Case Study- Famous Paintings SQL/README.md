@@ -68,10 +68,10 @@ There is no paintings have an asking price of more than their regular price.
 ```sql
 SELECT work_id
 FROM PRODUCT_SIZE
-WHERE SALE_PRICE > REGULAR_PRICE / 2;
+WHERE SALE_PRICE < REGULAR_PRICE / 2;
 ```
 -- Output --
-There are almost 1,10,289 paintings whose asking price is less than 50% of its regular price.
+There are  5 paintings whose asking price is less than 50% of its regular price.
 
 5. **Which canva size costs the most?**
 ```sql
