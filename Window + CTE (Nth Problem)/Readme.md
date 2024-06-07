@@ -52,12 +52,8 @@ SELECT * FROM EMP WHERE JOIN_DATE = (SELECT MAX(JOIN_DATE) FROM EMP);
 SELECT * FROM EMP WHERE JOIN_DATE <= DATE_SUB(CURDATE(), INTERVAL 5 YEAR);
 ```
 
-For more detailed queries and additional examples, check out my GitHub repository: [GitHub Link](https://github.com/yourusername/SQL-Solutions).
 
-I'm always eager to connect with fellow professionals and discuss improvements or new ideas. Let's keep learning and growing together! 💼📊✨
 
 #SQL #DataAnalysis #Database #CTE #WindowFunctions #Tech #Learning #CareerGrowth
 
 ---
-
-Feel free to personalize the GitHub link and adjust any details as needed!
